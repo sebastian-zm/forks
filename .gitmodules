@@ -1,0 +1,3 @@
+[submodule "airi"]
+	path = airi
+	url = https://github.com/sebastian-zm/airi.git
