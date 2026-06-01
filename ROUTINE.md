@@ -21,6 +21,9 @@ agent follows on each run.
    ```bash
    ./sync-forks.bash     # prints the path to a JSON report on stdout
    ```
+   (The script runs `gh auth setup-git` first so git pushes to the submodules'
+   `github.com` URLs authenticate with your token — ephemeral containers start
+   without a git credential helper.)
    For each submodule with an `upstream` remote, this:
    - fetches `upstream` + `origin`,
    - fast-forwards the fork's default branch (`main`) to upstream and pushes it

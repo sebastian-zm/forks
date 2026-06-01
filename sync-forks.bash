@@ -63,6 +63,14 @@ for tool in git gh jq; do
 	fi
 done
 
+# Ephemeral routine containers start with no git credential helper, so pushes
+# to the submodules' github.com URLs would fail to authenticate. Wire git up to
+# use gh's token (idempotent). Skipped under DRY_RUN since we never push there.
+if [ "$DRY_RUN" != "1" ]; then
+	gh auth setup-git >/dev/null 2>&1 \
+		|| log "warning: 'gh auth setup-git' failed; pushes may be rejected"
+fi
+
 # Emit one compact JSON object (a single report event) to the events buffer.
 emit() { jq -n -c "$@" >> "$EVENTS"; }
 
