@@ -14,6 +14,8 @@ set -euo pipefail
 # Map of submodule path -> upstream URL to fetch original commits from.
 declare -A UPSTREAMS=(
 	["airi"]="https://github.com/moeru-ai/airi.git"
+	["eventa"]="https://github.com/moeru-ai/eventa.git"
+	["clipboard-sync"]="https://github.com/dnut/clipboard-sync.git"
 )
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,3 +1,9 @@
 [submodule "airi"]
 	path = airi
 	url = https://github.com/sebastian-zm/airi.git
+[submodule "eventa"]
+	path = eventa
+	url = https://github.com/sebastian-zm/eventa.git
+[submodule "clipboard-sync"]
+	path = clipboard-sync
+	url = https://github.com/sebastian-zm/clipboard-sync.git
