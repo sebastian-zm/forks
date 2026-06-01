@@ -12,12 +12,12 @@ agent follows on each run.
 
 ## What runs each day
 
-1. **Prepare the environment** (idempotent):
-   ```bash
-   ./setup.bash          # re-create `upstream` remotes (not tracked by git)
-   ```
+The environment's pre-start setup script (run on environment creation, before
+the agent boots) installs `gh` with a valid `GITHUB_TOKEN` and runs
+`./setup.bash` to (re)create the `upstream` remotes. The routine itself starts
+at the sync below — it does **not** need to run `setup.bash`.
 
-2. **Synchronize** — run the deterministic git/PR work:
+1. **Synchronize** — run the deterministic git/PR work:
    ```bash
    ./sync-forks.bash     # prints the path to a JSON report on stdout
    ```
@@ -38,9 +38,9 @@ agent follows on each run.
        (un-rebased) tip as a clean place to resolve by hand, and records the
        conflict in the report. **The live PR branch is never left broken.**
 
-   The script never opens issues — it only reports. Issue handling is step 3.
+   The script never opens issues — it only reports. Issue handling is step 2.
 
-3. **Open / refresh issues for anything that wasn't clean.** Read the report
+2. **Open / refresh issues for anything that wasn't clean.** Read the report
    (`.sync-forks-report.json`) and act on:
    - every `prs[]` entry with `status == "conflict"`, and
    - every `ff[]` entry with `status == "failed"` or `status == "error"`.
