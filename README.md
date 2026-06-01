@@ -14,7 +14,6 @@ tracked by git and **not** pushed), the `upstream` remotes are recreated by
 | ---------------- | -------------------------------- | ------------------------- |
 | `airi`           | `sebastian-zm/airi`              | `moeru-ai/airi`           |
 | `eventa`         | `sebastian-zm/eventa`            | `moeru-ai/eventa`         |
-| `clipboard-sync` | `sebastian-zm/clipboard-sync`    | `dnut/clipboard-sync`     |
 
 ## Getting started
 
@@ -33,8 +32,8 @@ new submodule.
 
 ## Pulling upstream changes into a fork
 
-Replace `<submodule>` with `airi`, `eventa`, or `clipboard-sync`, and use the
-submodule's default branch (`main` or `master`).
+Replace `<submodule>` with `airi` or `eventa`, and use the submodule's default
+branch (`main`).
 
 ```bash
 cd <submodule>
@@ -47,6 +46,19 @@ cd ..                                 # back to this repo
 git add <submodule>                   # record the new submodule commit
 git commit -m "Update <submodule> submodule to latest upstream"
 git push
+```
+
+## Automated daily sync
+
+A once-a-day Cloud Routine keeps the forks current and the open PRs rebased:
+it fast-forwards each fork's default branch to upstream and rebases every open
+PR you authored onto it, opening a deduplicated issue here when a rebase
+conflicts. The deterministic git work lives in [`sync-forks.bash`](./sync-forks.bash);
+the full runbook (and the issue conventions) is in [`ROUTINE.md`](./ROUTINE.md).
+
+```bash
+./setup.bash        # recreate upstream remotes
+./sync-forks.bash   # fast-forward forks + rebase PRs; writes a JSON report
 ```
 
 ## Adding a new fork
