@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# setup.sh — configure submodules and their fork/upstream remotes.
+# setup.bash — configure submodules and their fork/upstream remotes.
 #
 # A submodule's remotes live in the superproject's .git/modules/<name>/config,
 # which is NOT tracked by git and NOT pushed. So a fresh clone only restores
 # `origin`. Run this script after cloning to (re)create the `upstream` remotes
 # needed to pull commits from the original repositories. It is idempotent.
 #
-# Usage: ./setup.sh
+# Usage: ./setup.bash
 
 set -euo pipefail
 

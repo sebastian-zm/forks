@@ -6,7 +6,7 @@ Each submodule's `origin` points to my fork; an `upstream` remote points to the
 original project so changes can be pulled in. Because a submodule's remotes are
 stored in the superproject's `.git/modules/<name>/config` (which is **not**
 tracked by git and **not** pushed), the `upstream` remotes are recreated by
-[`setup.sh`](./setup.sh) rather than committed.
+[`setup.bash`](./setup.bash) rather than committed.
 
 ## Submodules
 
@@ -23,10 +23,10 @@ After cloning this repository:
 ```bash
 git clone https://github.com/sebastian-zm/forks.git
 cd forks
-./setup.sh
+./setup.bash
 ```
 
-`setup.sh` initializes every submodule and (re)creates each `upstream` remote.
+`setup.bash` initializes every submodule and (re)creates each `upstream` remote.
 Pushing to `upstream` is disabled as a safeguard against pushing to the original
 repositories. The script is idempotent — re-run it any time, e.g. after adding a
 new submodule.
@@ -55,6 +55,6 @@ git push
    ```bash
    git submodule add https://github.com/sebastian-zm/<repo>.git <repo>
    ```
-2. Register its upstream in the `UPSTREAMS` map at the top of `setup.sh`.
-3. Run `./setup.sh` to wire up the new `upstream` remote.
-4. Commit `.gitmodules`, the new submodule, and `setup.sh`.
+2. Register its upstream in the `UPSTREAMS` map at the top of `setup.bash`.
+3. Run `./setup.bash` to wire up the new `upstream` remote.
+4. Commit `.gitmodules`, the new submodule, and `setup.bash`.
