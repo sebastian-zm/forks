@@ -26,8 +26,9 @@ agent follows on each run.
    - fast-forwards the fork's default branch (`main`) to upstream and pushes it
      to `origin`,
    - for each open PR you authored against the upstream whose head branch lives
-     in your fork, stages a rebase onto the updated default branch on a
-     throwaway `rebase/<head>` branch:
+     in your fork, stages a rebase onto the branch the PR actually targets,
+     fetched fresh from the upstream (`upstream/<base>`), on a throwaway
+     `rebase/<head>` branch:
      - **clean** → force-pushes (`--force-with-lease`) the result to the real PR
        head (the open PR updates and re-runs upstream CI),
      - **conflict** → aborts, publishes `rebase/<head>` at the PR's current
@@ -87,7 +88,7 @@ The daily fork-sync routine could not rebase an open PR cleanly.
 - Submodule: <path>
 - Upstream PR: <upstream>#<number> — <title>
 - PR head branch: <head>
-- Rebased onto: <base> (latest upstream)
+- Rebased onto: upstream/<base> (latest upstream base branch)
 - Conflicting files:
   - <file>
   - ...
@@ -96,9 +97,9 @@ The un-rebased tip has been published to `<rebase_branch>` in the fork as a
 clean starting point. To resolve:
 
     cd <path>
-    git fetch origin
+    git fetch origin && git fetch upstream
     git checkout <rebase_branch>          # == current PR head
-    git rebase main                        # resolve conflicts
+    git rebase upstream/<base>             # resolve conflicts
     git push --force-with-lease origin <rebase_branch>:<head>
 
 Then delete the helper branch: `git push origin --delete <rebase_branch>`.

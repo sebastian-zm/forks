@@ -8,9 +8,10 @@
 #   2. Fast-forward the fork's default branch (origin/HEAD, e.g. `main`) to the
 #      upstream default branch, then push it to `origin`.
 #   3. For every open PR you authored against the upstream whose head branch
-#      lives in your fork, rebase that branch onto the freshly-updated default
-#      branch. The rebase is always staged on a throwaway `rebase/<head>`
-#      branch so the live PR branch is never left in a broken state:
+#      lives in your fork, rebase that branch onto the branch the PR actually
+#      targets, fetched fresh from the upstream (`upstream/<base>`). The rebase
+#      is always staged on a throwaway `rebase/<head>` branch so the live PR
+#      branch is never left in a broken state:
 #        - clean rebase  -> force-push (--force-with-lease) the result to the
 #                           real PR head, updating the open PR.
 #        - conflict      -> abort, publish `rebase/<head>` at the PR's current
@@ -219,23 +220,39 @@ for path in "${submodule_paths[@]}"; do
 			continue
 		fi
 
+		# Rebase onto the branch the PR actually targets, fetched fresh from the
+		# upstream (e.g. upstream/main), not necessarily the fork's default branch.
+		rebase_onto="upstream/$base"
+		if ! git -C "$path" rev-parse --verify --quiet "$rebase_onto" >/dev/null 2>&1; then
+			git -C "$path" fetch upstream "$base" >/dev/null 2>&1 || true
+		fi
+		if ! git -C "$path" rev-parse --verify --quiet "$rebase_onto" >/dev/null 2>&1; then
+			log "    PR #$number ($head): error — base $rebase_onto not found on upstream"
+			emit --arg path "$path" --arg up "$up_slug" --arg fork "$fork_slug" \
+				--argjson num "$number" --arg head "$head" --arg base "$base" \
+				--arg title "$title" --arg status "error" \
+				--arg detail "base branch '$base' not found on upstream" \
+				'{type:"pr",path:$path,upstream:$up,fork:$fork,number:$num,head:$head,base:$base,title:$title,status:$status,detail:$detail}'
+			continue
+		fi
+
 		# Stage the rebase on a throwaway branch; never touch the live PR branch
 		# until we know the rebase is clean.
 		git -C "$path" rebase --abort >/dev/null 2>&1 || true
 		git -C "$path" checkout -q -B "$rebase_branch" "origin/$head"
 
-		if git -C "$path" rebase "$default_branch" >/dev/null 2>&1; then
+		if git -C "$path" rebase "$rebase_onto" >/dev/null 2>&1; then
 			rebased_tip="$(git -C "$path" rev-parse "$rebase_branch")"
 			orig_tip="$(git -C "$path" rev-parse "origin/$head")"
 			if [ "$rebased_tip" = "$orig_tip" ]; then
-				log "    PR #$number ($head): already up to date on $default_branch"
+				log "    PR #$number ($head): already up to date on $rebase_onto"
 				status="up_to_date"
-				detail="already based on latest $default_branch"
+				detail="already based on latest $rebase_onto"
 			elif gpush "$path" --force-with-lease="$head:$orig_tip" \
 					origin "$rebase_branch:$head"; then
 				log "    PR #$number ($head): rebased cleanly and force-pushed"
 				status="rebased"
-				detail="rebased onto $default_branch and force-pushed to PR head"
+				detail="rebased onto $rebase_onto and force-pushed to PR head"
 				# Drop any stale rebase/<head> branch from a previous conflict.
 				gpush "$path" origin --delete "$rebase_branch" || true
 			else
@@ -260,12 +277,12 @@ for path in "${submodule_paths[@]}"; do
 				|| log "    PR #$number ($head): warning — could not push $rebase_branch"
 			git -C "$path" checkout -q --detach >/dev/null 2>&1
 			git -C "$path" branch -D "$rebase_branch" >/dev/null 2>&1 || true
-			log "    PR #$number ($head): CONFLICT rebasing onto $default_branch"
+			log "    PR #$number ($head): CONFLICT rebasing onto $rebase_onto"
 			emit --arg path "$path" --arg up "$up_slug" --arg fork "$fork_slug" \
 				--argjson num "$number" --arg head "$head" --arg base "$base" \
 				--arg title "$title" --arg status "conflict" \
 				--arg rb "$rebase_branch" --argjson files "$conflict_files" \
-				--arg detail "rebase onto $default_branch hit conflicts; un-rebased tip published to $rebase_branch for manual resolution" \
+				--arg detail "rebase onto $rebase_onto hit conflicts; un-rebased tip published to $rebase_branch for manual resolution" \
 				'{type:"pr",path:$path,upstream:$up,fork:$fork,number:$num,head:$head,base:$base,title:$title,status:$status,rebase_branch:$rb,conflict_files:$files,detail:$detail}'
 		fi
 	done < <(jq -r '.[] | [.number, .headRefName, .baseRefName, .headRepositoryOwner.login, .isDraft, .title] | @tsv' <<<"$prs_json")
